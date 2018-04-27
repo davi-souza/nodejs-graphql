@@ -1,149 +1,22 @@
 var express = require('express');
 var router = express.Router();
-var { graphql, GraphQLSchema, GraphQLObjectType } = require('graphql');
-var { TypeComposer } = require('graphql-compose');
-var { composeWithElastic, elasticApiFieldConfig } = require('graphql-compose-elasticsearch');
-var elasticsearch = require('elasticsearch');
+var http = require('http');
+var { graphql, buildSchema } = require('graphql');
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  // var elasticSearchClient = new elasticsearch.Client({
-  //   host: 'http://es:9200',
-  //   log: 'trace'
-  // });
 
-  const mapping = {
-    properties: {
-      name: {
-        type: 'text',
-        fields: {
-          keyword: {
-            type: 'keyword',
-          },
-        },
-      },
-      gender: {
-        type: 'text',
-      },
-      birthday: {
-        type: 'date',
-      },
-      position: {
-        type: 'text',
-      },
-      relocation: {
-        type: 'boolean',
-      },
-      salary: {
-        properties: {
-          currency: {
-            type: 'text',
-          },
-          total: {
-            type: 'double',
-          },
-        },
-      },
-      skills: {
-        type: 'text',
-      },
-      languages: {
-        type: 'keyword',
-      },
-      location: {
-        properties: {
-          name: {
-            type: 'text',
-          },
-          point: {
-            type: 'geo_point',
-          },
-        },
-      },
-      experience: {
-        properties: {
-          company: {
-            type: 'text',
-          },
-          description: {
-            type: 'text',
-          },
-          end: {
-            type: 'date',
-          },
-          position: {
-            type: 'text',
-          },
-          start: {
-            type: 'date',
-          },
-          tillNow: {
-            type: 'boolean',
-          },
-        },
-      },
-      createdAt: {
-        type: 'date',
-      },
-    },
-  };
-
-  const UserEsTC = composeWithElastic({
-    graphqlTypeName: 'UserES',
-    elasticIndex: 'db',
-    elasticType: 'test',
-    elasticMapping: mapping,
-    elasticClient: new elasticsearch.Client({
-      host: 'http://es:9200',
-      log: 'trace',
-    }),
-    // elastic mapping does not contain information about is fields are arrays or not
-    // so provide this information explicitly for obtaining correct types in GraphQL
-    pluralFields: ['skills', 'languages'],
+  var schema = buildSchema(`
+      type Query {
+        id: Int
+        name: String
+        gender: String
+      }
+    `)
+  http.get('http://es:9200/db/_search?pretty=true&q=\*:\*',function(res){
+    console.log(res);
   });
-
-  const ProxyTC = TypeComposer.create(`type ProxyDebugType { source: JSON }`);
-  ProxyTC.addResolver({
-    name: 'showArgs',
-    kind: 'query',
-    args: {
-      source: 'JSON',
-    },
-    type: 'ProxyDebugType',
-    resolve: ({ args }) => args,
-  });
-
-  UserEsTC.addRelation('showRelationArguments', {
-    resolver: () => ProxyTC.getResolver('showArgs'),
-    prepareArgs: {
-      source: source => source,
-    },
-    projection: {
-      name: true,
-      salary: true,
-    },
-  });
-
-  const schema = new GraphQLSchema({
-    query: new GraphQLObjectType({
-      name: 'Query',
-      fields: {
-        userSearch: UserEsTC.getResolver('search').getFieldConfig(),
-        userSearchConnection: UserEsTC.getResolver('searchConnection').getFieldConfig(),
-        elastic50: elasticApiFieldConfig({
-          host: 'http://es:9200',
-          log: 'trace',
-        }),
-      },
-    }),
-  });
-
-  graphql(schema, '{ name }').then((response) => {
-    console.log(response);
-  });
-
-  console.log(schema);
-
+  // graphql(schema, '{ id }', 'http://es:9200')
   res.send('end');
 });
 

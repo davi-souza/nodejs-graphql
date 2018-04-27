@@ -1,4 +1,4 @@
-# NODEJS with GRAPHQL
+# NODEJS with ELASTICSEARCH and GRAPHQL
 ## Init
 __Build images:__
 ```

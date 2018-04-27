@@ -1,18 +1,5 @@
 {
     "id": 3,
     "name": "Andrew",
-    "gender": "male",
-    "birthday": "1952-02-19",
-    "position": "Vice President Sales",
-    "relocation": false,
-    "salary": {
-      "total": 23456,
-      "currency": "USD"
-    },
-    "skills": [ "BTS commercial", "international marketing"],
-    "languages": [ "en", "fr", "ge" ],
-    "location": {
-      "name": "Tacoma"
-    },
-    "createdAt": "2017-10-19T04:29:10Z"
+    "gender": "male"
   }

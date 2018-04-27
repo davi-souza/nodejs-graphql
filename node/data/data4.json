@@ -1,18 +1,5 @@
 {
     "id": 4,
     "name": "Steven",
-    "gender": "male",
-    "birthday": "1955-03-04",
-    "position": "Sales Representative",
-    "relocation": false,
-    "salary": {
-      "total": 12222,
-      "currency": "USD"
-    },
-    "skills": [ "BA in psychology", "Art of the Cold Call"],
-    "languages": [ "en" ],
-    "location": {
-      "name": "Seattle"
-    },
-    "createdAt": "2017-10-19T04:29:11Z"
+    "gender": "male"
   }

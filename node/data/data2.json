@@ -1,19 +1,5 @@
 {
     "id": 2,
     "name": "Helen",
-    "gender": "female",
-    "birthday": "1986-03-06",
-    "position": "sales manager",
-    "relocation": true,
-    "salary": {
-      "total": 12345,
-      "currency": "USD"
-    },
-    "skills": [ "Communication", "Ability to Attain Targets", "Analytical Ability", "Judgment"],
-    "languages": [ "ru", "en" ],
-    "location": {
-      "name": "Almaty",
-      "point": [43.238949, 76.889709]
-    },
-    "createdAt": "2017-10-19T04:29:09Z"
+    "gender": "female"
   }

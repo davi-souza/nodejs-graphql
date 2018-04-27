@@ -1,19 +1,5 @@
 {
     "id": 1,
     "name": "Pavel",
-    "gender": "male",
-    "birthday": "1985-07-15",
-    "position": "CTO",
-    "relocation": true,
-    "salary": {
-      "total": 333,
-      "currency": "BTC"
-    },
-    "skills": [ "nodejs", "graphql", "babel", "webpack", "oss contributor", "devOps" ],
-    "languages": [ "ru", "en" ],
-    "location": {
-      "name": "Almaty",
-      "point": [43.238949, 76.889709]
-    },
-    "createdAt": "2017-10-19T04:29:08Z"
+    "gender": "male"
   }
