@@ -1,0 +1,24 @@
+version: '3'
+
+services:
+  node:
+    image: davisouza/aka_node:dev
+    container_name: aka_node
+    build:
+      context: ./Dockerfiles
+      dockerfile: aka_node
+    ports:
+      - 3000:3000
+    volumes:
+      - ./node/:/node/
+    links:
+      - es
+
+  es:
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.2.4
+    container_name: es
+    environment:
+      - discovery.type=single-node
+    ports:
+      - 9200:9200
+      - 9300:9300

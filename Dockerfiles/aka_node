@@ -1,0 +1,9 @@
+FROM node:alpine
+
+RUN npm i -g express-generator
+
+EXPOSE 3000
+
+WORKDIR /node/
+
+CMD npm run dev

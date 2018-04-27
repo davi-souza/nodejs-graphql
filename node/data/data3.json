@@ -1,0 +1,20 @@
+{
+    "name":         "John Smith 3",
+    "id":          3,
+    "confirmed":    true,
+    "join_date":    "2014-06-03",
+    "home": {
+        "lat":      51.5,
+        "lon":      0.1
+    },
+    "accounts": [
+        {
+            "type": "facebook",
+            "id":   "johnsmith3"
+        },
+        {
+            "type": "twitter",
+            "id":   "johnsmith3"
+        }
+    ]
+}
