@@ -1,20 +1,19 @@
 {
-    "name":         "John Smith 2",
-    "id":          2,
-    "confirmed":    true,
-    "join_date":    "2014-06-02",
-    "home": {
-        "lat":      51.5,
-        "lon":      0.1
+    "id": 2,
+    "name": "Helen",
+    "gender": "female",
+    "birthday": "1986-03-06",
+    "position": "sales manager",
+    "relocation": true,
+    "salary": {
+      "total": 12345,
+      "currency": "USD"
     },
-    "accounts": [
-        {
-            "type": "facebook",
-            "id":   "johnsmith2"
-        },
-        {
-            "type": "twitter",
-            "id":   "johnsmith2"
-        }
-    ]
-}
+    "skills": [ "Communication", "Ability to Attain Targets", "Analytical Ability", "Judgment"],
+    "languages": [ "ru", "en" ],
+    "location": {
+      "name": "Almaty",
+      "point": [43.238949, 76.889709]
+    },
+    "createdAt": "2017-10-19T04:29:09Z"
+  }
