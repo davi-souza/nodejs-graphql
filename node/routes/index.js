@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var http = require('http');
+var elasticsearch = require('elasticsearch');
 var { graphql, buildSchema } = require('graphql');
 
 /* GET home page. */
@@ -21,7 +22,7 @@ router.get('/', function(req, res, next) {
 });
 
 /* GET to create data in ElasticSearch container */
-router.get('/es/create/data', function(req,res,next){
+router.get('/es/data/create', function(req,res,next){
   /* Loading JSON */
   let data1 = require('../data/data1.json');
   let data2 = require('../data/data2.json');
