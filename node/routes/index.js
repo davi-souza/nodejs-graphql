@@ -5,16 +5,15 @@ var { TypeComposer, schemaComposer } = require('graphql-compose');
 var { _, find, filter } = require('lodash');
 var elasticsearch = require('elasticsearch');
 
+/* Elasticsearch Client */
+var client = new elasticsearch.Client({
+  host: 'es:9200',
+  log: 'trace'
+});
 
-/* GET home page. */
+
+/* Path to see a GraphQL query result */
 router.get('/', async function(req, res, next) {
-
-  // Connecting with elasticsearch
-  var client = new elasticsearch.Client({
-    host: 'es:9200',
-    log: 'trace'
-  });
-
   // Getting all hits from index 'authors'
   let aResult = await client.search({
     index: 'authors',
@@ -118,8 +117,10 @@ router.get('/', async function(req, res, next) {
     },
   });
 
+  /* Building schema */
   const schema = schemaComposer.buildSchema();
 
+  /* Query */
   const query = `{
     posts {
       id
@@ -131,15 +132,15 @@ router.get('/', async function(req, res, next) {
     }
   }`;
 
+  /* Using GraphQL */
   graphql(schema,query).then(result => {
     res.send(result);
     res.end();
   });
-
   
-
 });
 
+/* Path to populate the Elasticsearch */
 router.get('/es/data/create',function(req,res,next){
   const authors = [
     { id: 1, firstName: 'Tom', lastName: 'Coleman' },
@@ -153,11 +154,6 @@ router.get('/es/data/create',function(req,res,next){
     { id: 3, authorId: 2, title: 'Advanced GraphQL', votes: 1 },
     { id: 4, authorId: 3, title: 'Launchpad is Cool', votes: 7 },
   ];
-
-  var client = new elasticsearch.Client({
-    host: 'es:9200',
-    log: 'trace'
-  });
 
   for(let a of authors){
     client.create({
