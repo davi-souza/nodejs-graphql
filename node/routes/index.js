@@ -3,22 +3,39 @@ var router = express.Router();
 var { graphql } = require('graphql');
 var { TypeComposer, schemaComposer } = require('graphql-compose');
 var { _, find, filter } = require('lodash');
+var elasticsearch = require('elasticsearch');
 
 
 /* GET home page. */
-router.get('/', function(req, res, next) {
-  const authors = [
-    { id: 1, firstName: 'Tom', lastName: 'Coleman' },
-    { id: 2, firstName: 'Sashko', lastName: 'Stubailo' },
-    { id: 3, firstName: 'Mikhail', lastName: 'Novikov' },
-  ];
+router.get('/', async function(req, res, next) {
 
-  const posts = [
-    { id: 1, authorId: 1, title: 'Introduction to GraphQL', votes: 2 },
-    { id: 2, authorId: 2, title: 'Welcome to Apollo', votes: 3 },
-    { id: 3, authorId: 2, title: 'Advanced GraphQL', votes: 1 },
-    { id: 4, authorId: 3, title: 'Launchpad is Cool', votes: 7 },
-  ];
+  // Connecting with elasticsearch
+  var client = new elasticsearch.Client({
+    host: 'es:9200',
+    log: 'trace'
+  });
+
+  // Getting all hits from index 'authors'
+  let aResult = await client.search({
+    index: 'authors',
+    q: '*:*'
+  });
+  // Getting all hits from index 'posts'
+  let pResult = await client.search({
+    index: 'posts',
+    q: '*:*'
+  });
+
+  var authors = [];
+  var posts = [];
+
+  for(let a of aResult.hits.hits){
+    authors.push(a._source)
+  }
+
+  for(let p of pResult.hits.hits){
+    posts.push(p._source)
+  }
 
   const AuthorTC = TypeComposer.create({
     name: 'Author',
@@ -119,6 +136,48 @@ router.get('/', function(req, res, next) {
     res.end();
   });
 
+});
+
+router.get('/es/data/create',function(req,res,next){
+  const authors = [
+    { id: 1, firstName: 'Tom', lastName: 'Coleman' },
+    { id: 2, firstName: 'Sashko', lastName: 'Stubailo' },
+    { id: 3, firstName: 'Mikhail', lastName: 'Novikov' },
+  ];
+
+  const posts = [
+    { id: 1, authorId: 1, title: 'Introduction to GraphQL', votes: 2 },
+    { id: 2, authorId: 2, title: 'Welcome to Apollo', votes: 3 },
+    { id: 3, authorId: 2, title: 'Advanced GraphQL', votes: 1 },
+    { id: 4, authorId: 3, title: 'Launchpad is Cool', votes: 7 },
+  ];
+
+  var client = new elasticsearch.Client({
+    host: 'es:9200',
+    log: 'trace'
+  });
+
+  for(let a of authors){
+    client.create({
+      index: 'authors',
+      type: 'type',
+      id: a.id,
+      body: a
+    }, function(err,res){
+      console.log(res);
+    });
+  }
+  for(let p of posts){
+    client.create({
+      index: 'posts',
+      type: 'type',
+      id: p.id,
+      body: p
+    }, function(err,res){
+      console.log(res);
+    });
+  }
+  res.end('ElasticSearch Loaded');
 });
 
 
