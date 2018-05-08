@@ -4,31 +4,38 @@ var { graphql } = require('graphql');
 var { TypeComposer, schemaComposer } = require('graphql-compose');
 var { _, find, filter } = require('lodash');
 var elasticsearch = require('elasticsearch');
-var client = new elasticsearch.Client({
-  host: 'http://es:9200',
-  log: 'trace'
-});
+
 
 /* GET home page. */
 router.get('/', async function(req, res, next) {
 
-  var aut = await client.search({
+  // Connecting with elasticsearch
+  var client = new elasticsearch.Client({
+    host: 'es:9200',
+    log: 'trace'
+  });
+
+  // Getting all hits from index 'authors'
+  let aResult = await client.search({
     index: 'authors',
     q: '*:*'
   });
-
-  var authors = [];
-  for(let a of aut.hits.hits)
-    authors.push(a._source);
-
-  var pos = await client.search({
+  // Getting all hits from index 'posts'
+  let pResult = await client.search({
     index: 'posts',
     q: '*:*'
   });
 
+  var authors = [];
   var posts = [];
-  for(let p of pos.hits.hits)
-    posts.push(p._source);
+
+  for(let a of aResult.hits.hits){
+    authors.push(a._source)
+  }
+
+  for(let p of pResult.hits.hits){
+    posts.push(p._source)
+  }
 
   const AuthorTC = TypeComposer.create({
     name: 'Author',
@@ -48,7 +55,6 @@ router.get('/', async function(req, res, next) {
       authorId: 'Int',
     },
   });
-
 
   PostTC.addFields({
     author: {
@@ -81,8 +87,6 @@ router.get('/', async function(req, res, next) {
     },
   });
 
-
-
   // Requests which read data put into Query
   schemaComposer.Query.addFields({
     posts: {
@@ -114,43 +118,32 @@ router.get('/', async function(req, res, next) {
     },
   });
 
-  // After Root type definition, you are ready to build Schema
-  // which should be passed to `express-graphql` or `apollo-server`
   const schema = schemaComposer.buildSchema();
-  var query = `{
-    author (id: 2) {
-      firstName
-      posts {
-        title
-        votes
+
+  const query = `{
+    posts {
+      id
+      title
+      author {
+        firstName
+        lastName
       }
     }
   }`;
-  graphql(schema, query).then(result => {
-    console.log(result);
+
+  graphql(schema,query).then(result => {
     res.send(result);
     res.end();
   });
 
-console.log(posts);
 });
 
-router.get('/es/data/create', function(req,res,next){
-
+router.get('/es/data/create',function(req,res,next){
   const authors = [
     { id: 1, firstName: 'Tom', lastName: 'Coleman' },
     { id: 2, firstName: 'Sashko', lastName: 'Stubailo' },
     { id: 3, firstName: 'Mikhail', lastName: 'Novikov' },
   ];
-  for(let a of authors){
-    client.create({
-      index: 'authors',
-      type: 'type',
-      id: a.id,
-      body: a
-    }, function(error,response){
-    });
-  }
 
   const posts = [
     { id: 1, authorId: 1, title: 'Introduction to GraphQL', votes: 2 },
@@ -159,16 +152,33 @@ router.get('/es/data/create', function(req,res,next){
     { id: 4, authorId: 3, title: 'Launchpad is Cool', votes: 7 },
   ];
 
+  var client = new elasticsearch.Client({
+    host: 'es:9200',
+    log: 'trace'
+  });
+
+  for(let a of authors){
+    client.create({
+      index: 'authors',
+      type: 'type',
+      id: a.id,
+      body: a
+    }, function(err,res){
+      console.log(res);
+    });
+  }
   for(let p of posts){
     client.create({
       index: 'posts',
       type: 'type',
       id: p.id,
       body: p
-    }, function(error,response){
+    }, function(err,res){
+      console.log(res);
     });
   }
-  res.send('ElasticSearch loaded');
+  res.end('ElasticSearch Loaded');
 });
+
 
 module.exports = router;
