@@ -13,6 +13,7 @@ docker-compose up
 ```
 __Query Result:__
 [Populate elasticsearch container](http://localhost:3000/es/data/create)
+
 __Data Structure:__
 ```
 authors = [
