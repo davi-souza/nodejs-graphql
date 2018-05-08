@@ -136,6 +136,8 @@ router.get('/', async function(req, res, next) {
     res.end();
   });
 
+  
+
 });
 
 router.get('/es/data/create',function(req,res,next){
