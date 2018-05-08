@@ -1,54 +1,125 @@
 var express = require('express');
 var router = express.Router();
-var http = require('http');
-var { graphql, buildSchema } = require('graphql');
+var { graphql } = require('graphql');
+var { TypeComposer, schemaComposer } = require('graphql-compose');
+var { _, find, filter } = require('lodash');
+
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
+  const authors = [
+    { id: 1, firstName: 'Tom', lastName: 'Coleman' },
+    { id: 2, firstName: 'Sashko', lastName: 'Stubailo' },
+    { id: 3, firstName: 'Mikhail', lastName: 'Novikov' },
+  ];
 
-  var schema = buildSchema(`
-      type Query {
-        id: Int
-        name: String
-        gender: String
+  const posts = [
+    { id: 1, authorId: 1, title: 'Introduction to GraphQL', votes: 2 },
+    { id: 2, authorId: 2, title: 'Welcome to Apollo', votes: 3 },
+    { id: 3, authorId: 2, title: 'Advanced GraphQL', votes: 1 },
+    { id: 4, authorId: 3, title: 'Launchpad is Cool', votes: 7 },
+  ];
+
+  const AuthorTC = TypeComposer.create({
+    name: 'Author',
+    fields: {
+      id: 'Int!',
+      firstName: 'String',
+      lastName: 'String',
+    },
+  });
+
+  const PostTC = TypeComposer.create({
+    name: 'Post',
+    fields: {
+      id: 'Int!',
+      title: 'String',
+      votes: 'Int',
+      authorId: 'Int',
+    },
+  });
+
+  PostTC.addFields({
+    author: {
+      // you may provide type name as string 'Author',
+      // but for better developer experience use Type instance `AuthorTC`
+      // it allows to jump to type declaration via Ctrl+Click in your IDE
+      type: AuthorTC,
+      // resolve method as first argument will receive data for some Post
+      // from this data you should somehow fetch Author's data
+      // let's take lodash `find` method, for searching by `authorId`
+      // PS. `resolve` method may be async for fetching data from DB
+      // resolve: async (source, args, context, info) => { return DB.find(); }
+      resolve: post => find(authors, { id: post.authorId }),
+    },
+  });
+
+  AuthorTC.addFields({
+    posts: {
+      // Array of posts may be described as string in SDL in such way '[Post]'
+      // But graphql-compose allow to use Type instance wrapped in array
+      type: [PostTC],
+      // for obtaining list of post we get current author.id
+      // and scan and filter all Posts with desired authorId
+      resolve: author => filter(posts, { authorId: author.id }),
+    },
+    postCount: {
+      type: 'Int',
+      description: 'Number of Posts written by Author',
+      resolve: author => filter(posts, { authorId: author.id }).length,
+    },
+  });
+
+  // Requests which read data put into Query
+  schemaComposer.Query.addFields({
+    posts: {
+      type: '[Post]',
+      resolve: () => posts,
+    },
+    author: {
+      type: 'Author',
+      args: { id: 'Int!' },
+      resolve: (_, { id }) => find(authors, { id }),
+    },
+  });
+
+  // Requests which modify data put into Mutation
+  schemaComposer.Mutation.addFields({
+    upvotePost: {
+      type: 'Post',
+      args: {
+        postId: 'Int!',
+      },
+      resolve: (_, { postId }) => {
+        const post = find(posts, { id: postId });
+        if (!post) {
+          throw new Error(`Couldn't find post with id ${postId}`);
+        }
+        post.votes += 1;
+        return post;
+      },
+    },
+  });
+
+  const schema = schemaComposer.buildSchema();
+
+  const query = `{
+    posts {
+      id
+      title
+      author {
+        firstName
+        lastName
       }
-    `)
-  http.get('http://es:9200/db/_search?pretty=true&q=\*:\*',function(res){
-    console.log(res);
-  });
-  // graphql(schema, '{ id }', 'http://es:9200')
-  res.send('end');
-});
+    }
+  }`;
 
-/* GET to create data in ElasticSearch container */
-router.get('/es/create/data', function(req,res,next){
-  /* Loading JSON */
-  let data1 = require('../data/data1.json');
-  let data2 = require('../data/data2.json');
-  let data3 = require('../data/data3.json');
-  let data4 = require('../data/data4.json');
-  let data = [data1, data2, data3, data4];
-
-  /* Connecting to ElasticSearch */
-  var client = new elasticsearch.Client({
-    host: 'http://es:9200',
-    log: 'trace'
+  graphql(schema,query).then(result => {
+    res.send(result);
+    res.end();
   });
 
-  /* Creating Data */
-  for(let d of data){
-    client.create({
-      index: 'db',
-      type: 'test',
-      id: d.id,
-      body: d
-    }, function(error,response){
-      console.log('error '+d.id+':',error);
-      console.log('response '+d.id+':',response);
-    });
-  }
-
-  res.send('ElasticSearch loaded');
 });
+
 
 module.exports = router;

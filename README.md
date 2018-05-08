@@ -12,8 +12,6 @@ __Run containers:__
 ```
 docker-compose up
 ```
-__Create ElasticSearch Data:__
-[Create ElasticSearch data](http://localhost:3000/es/create/data)
 
 __Query Result (under construction):__
 [Query Result](http://localhost:3000)
